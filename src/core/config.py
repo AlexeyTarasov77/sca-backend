@@ -15,7 +15,7 @@ PORT = t.Annotated[int, Field(gt=0, le=65535)]
 
 
 class _Server(BaseModel):
-    host: str = Field(default="0.0.0.0")
+    hostname: str = Field(default="0.0.0.0")
     port: PORT = Field(default=8000)
 
 

@@ -11,7 +11,7 @@ app.include_router(v1_router)
 
 async def main():
     server_cfg = uvicorn.Config(
-        "main:app", port=app_config.server.port, log_level="info"
+        "main:app", port=app_config.server.port, host="0.0.0.0", log_level="info"
     )
     server = uvicorn.Server(server_cfg)
     await server.serve()
