@@ -14,7 +14,7 @@ class CatsService(ICatsService):
 
     async def remove_cat(self, cat_id: int) -> None:
         try:
-            await self._cats_repo.delete(cat_id)
+            await self._cats_repo.delete_by_id(cat_id)
         except StorageNotFoundError:
             raise CatNotFoundError()
 
@@ -29,9 +29,11 @@ class CatsService(ICatsService):
         limit: int | None = None,
         offset: int | None = None,
     ) -> list[Cat]:
-        return await self._cats_repo.get_all(
-            limit=limit,
-            offset=offset,
+        return list(
+            await self._cats_repo.get_all(
+                limit=limit,
+                offset=offset,
+            )
         )
 
     async def update_cat(self, cat_id: int, dto: UpdateCatDTO) -> Cat:

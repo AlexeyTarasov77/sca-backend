@@ -25,8 +25,14 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
             session.add(instance)
             await session.flush()
 
-    async def list(self, **filter_by) -> Sequence[T]:
+    async def get_all(
+        self, limit: int | None = None, offset: int | None = None, **filter_by
+    ) -> Sequence[T]:
         stmt = select(self.model).filter_by(**filter_by)
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        if offset is not None:
+            stmt = stmt.offset(offset)
         async with session_factory() as session:
             res = await session.execute(stmt)
         return res.scalars().all()

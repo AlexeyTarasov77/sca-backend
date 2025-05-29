@@ -33,10 +33,12 @@ class MissionsService(IMissionsService):
         offset: int | None = None,
         is_completed: bool | None = None,
     ) -> list[Mission]:
-        return await self._missions_repo.get_all(
-            limit=limit,
-            offset=offset,
-            is_completed=is_completed,
+        return list(
+            await self._missions_repo.get_all_and_filter(
+                limit=limit,
+                offset=offset,
+                is_completed=is_completed,
+            )
         )
 
     async def remove_mission(self, mission_id: int) -> None:

@@ -4,10 +4,14 @@ from datetime import datetime
 from sqlalchemy import text
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase, mapped_column
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+
 
 int_pk_type = t.Annotated[int, mapped_column(primary_key=True)]
-_pg_utcnow = text("now() at time zone 'UTC'")
-created_at_type = t.Annotated[datetime, mapped_column(server_default=_pg_utcnow)]
+_pg_utcnow = text("now()")
+created_at_type = t.Annotated[
+    datetime, mapped_column(TIMESTAMP(timezone=True), server_default=_pg_utcnow)
+]
 
 
 class EntityBaseModel(DeclarativeBase):
