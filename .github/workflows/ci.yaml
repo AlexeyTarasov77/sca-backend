@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install deps
-        run: pip install poetry && poetry install
+        run: pip install poetry && poetry install --no-root 
 
       - name: lint
         run: poetry run ruff check ./src 
