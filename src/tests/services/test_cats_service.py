@@ -5,7 +5,7 @@ from faker import Faker
 import pytest
 from unittest.mock import Mock, create_autospec
 
-from dto import CreateCatDTO
+from dto import CreateCatDTO, UpdateCatDTO
 from entity import Cat
 from gateways.contracts import ICatsAPIClient, ICatsRepo
 from gateways.exceptions import StorageNotFoundError
@@ -30,6 +30,24 @@ def cats_service() -> MockedCatsService:
 @pytest.fixture
 def fake_create_cat_dto(faker: Faker):
     return CreateCatDTO(
+        name=faker.name(),
+        experience_years=randint(0, 10),
+        salary=Decimal(randint(0, 9999)),
+        breed_name=faker.name(),
+    )
+
+
+@pytest.fixture
+def fake_update_cat_dto():
+    return UpdateCatDTO(
+        salary=Decimal(randint(0, 9999)),
+    )
+
+
+@pytest.fixture
+def fake_cat(faker: Faker):
+    return Cat(
+        id=randint(1, 100000),
         name=faker.name(),
         experience_years=randint(0, 10),
         salary=Decimal(randint(0, 9999)),
@@ -73,3 +91,84 @@ class TestCatsService:
         with pytest.raises(CatNotFoundError):
             await cats_service.remove_cat(fake_cat_id)
         cats_service._cats_repo.delete.assert_awaited_once_with(fake_cat_id)
+
+    async def test_get_cat_by_id_success(
+        self, cats_service: MockedCatsService, fake_cat: Cat
+    ):
+        fake_cat_id = fake_cat.id
+        cats_service._cats_repo.get_by_id.return_value = fake_cat
+
+        res = await cats_service.get_cat_by_id(fake_cat_id)
+
+        assert res == fake_cat
+        cats_service._cats_repo.get_by_id.assert_awaited_once_with(fake_cat_id)
+
+    async def test_get_cat_by_id_not_found(self, cats_service: MockedCatsService):
+        fake_cat_id = randint(1, 100000)
+        cats_service._cats_repo.get_by_id.side_effect = StorageNotFoundError()
+
+        with pytest.raises(CatNotFoundError):
+            await cats_service.get_cat_by_id(fake_cat_id)
+
+        cats_service._cats_repo.get_by_id.assert_awaited_once_with(fake_cat_id)
+
+    # New tests for get_all_cats
+    async def test_get_all_cats_success(
+        self, cats_service: MockedCatsService, fake_cat: Cat
+    ):
+        expected_cats = [fake_cat]
+        cats_service._cats_repo.get_all.return_value = expected_cats
+
+        res = await cats_service.get_all_cats()
+
+        assert res == expected_cats
+        cats_service._cats_repo.get_all.assert_awaited_once_with(
+            limit=None, offset=None
+        )
+
+    async def test_get_all_cats_with_pagination(
+        self, cats_service: MockedCatsService, fake_cat: Cat
+    ):
+        expected_cats = [fake_cat]
+        limit, offset = 10, 5
+        cats_service._cats_repo.get_all.return_value = expected_cats
+
+        res = await cats_service.get_all_cats(limit=limit, offset=offset)
+
+        assert res == expected_cats
+        cats_service._cats_repo.get_all.assert_awaited_once_with(
+            limit=limit, offset=offset
+        )
+
+    # New tests for update_cat
+    async def test_update_cat_success(
+        self,
+        cats_service: MockedCatsService,
+        fake_cat: Cat,
+        fake_update_cat_dto: UpdateCatDTO,
+    ):
+        fake_cat_id = fake_cat.id
+        updated_cat = Cat()
+
+        cats_service._cats_repo.get_by_id.return_value = fake_cat
+        cats_service._cats_repo.update_by_id.return_value = updated_cat
+
+        res = await cats_service.update_cat(fake_cat_id, fake_update_cat_dto)
+
+        assert res == updated_cat
+        cats_service._cats_repo.update_by_id.assert_awaited_once_with(
+            fake_cat_id, fake_update_cat_dto
+        )
+
+    async def test_update_cat_not_found(
+        self, cats_service: MockedCatsService, fake_update_cat_dto: UpdateCatDTO
+    ):
+        fake_cat_id = randint(1, 100000)
+        cats_service._cats_repo.update_by_id.side_effect = StorageNotFoundError()
+
+        with pytest.raises(CatNotFoundError):
+            await cats_service.update_cat(fake_cat_id, fake_update_cat_dto)
+
+        cats_service._cats_repo.update_by_id.assert_awaited_once_with(
+            fake_cat_id, fake_update_cat_dto
+        )

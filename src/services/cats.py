@@ -1,4 +1,4 @@
-from dto import CreateCatDTO
+from dto import CreateCatDTO, UpdateCatDTO
 from entity import Cat
 from gateways.exceptions import StorageNotFoundError
 from services.contracts import ICatsService
@@ -15,5 +15,27 @@ class CatsService(ICatsService):
     async def remove_cat(self, cat_id: int) -> None:
         try:
             await self._cats_repo.delete(cat_id)
+        except StorageNotFoundError:
+            raise CatNotFoundError()
+
+    async def get_cat_by_id(self, cat_id: int) -> Cat:
+        try:
+            return await self._cats_repo.get_by_id(cat_id)
+        except StorageNotFoundError:
+            raise CatNotFoundError()
+
+    async def get_all_cats(
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[Cat]:
+        return await self._cats_repo.get_all(
+            limit=limit,
+            offset=offset,
+        )
+
+    async def update_cat(self, cat_id: int, dto: UpdateCatDTO) -> Cat:
+        try:
+            return await self._cats_repo.update_by_id(cat_id, dto)
         except StorageNotFoundError:
             raise CatNotFoundError()
