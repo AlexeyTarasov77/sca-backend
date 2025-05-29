@@ -1,6 +1,6 @@
 from dto import CreateMissionDTO, CreateTargetNoteDTO, AssignMissionDTO
 from entity import Mission, Target, TargetNote
-from exceptions import (
+from services.exceptions import (
     MissionNotFoundError,
     TargetNotFoundError,
     CatNotFoundError,
@@ -39,7 +39,7 @@ class MissionsService(IMissionsService):
             is_completed=is_completed,
         )
 
-    async def delete_mission(self, mission_id: int) -> None:
+    async def remove_mission(self, mission_id: int) -> None:
         try:
             mission = await self._missions_repo.get_by_id(mission_id)
             if mission.assigned_to_id is not None:
