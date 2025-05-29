@@ -1,1 +1,1 @@
-from .main import session_factory as session_factory
+from .main import get_session as get_session

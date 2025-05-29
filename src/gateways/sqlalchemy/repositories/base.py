@@ -2,7 +2,7 @@ from collections.abc import Mapping, Sequence
 from sqlalchemy import CursorResult, Row, delete, func, insert, select, update
 from dto.base import PaginationDTO, PaginationResT
 from entity.base import EntityBaseModel
-from gateways.sqlalchemy import session_factory
+from gateways.sqlalchemy import get_session
 
 from gateways.exceptions import GatewayError, StorageNotFoundError
 
@@ -17,18 +17,18 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
         if not values:
             raise GatewayError("No data to insert")
         stmt = insert(self.model).values(**values).returning(self.model)
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         return res.scalars().one()
 
     async def save(self, instance: T):
-        async with session_factory() as session:
+        async with get_session() as session:
             session.add(instance)
             await session.flush()
 
     async def get_one(self, **filter_by) -> T:
         stmt = select(self.model).filter_by(**filter_by).limit(1)
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         obj = res.scalar_one_or_none()
         if not obj:
@@ -44,7 +44,7 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
             .values(**data)
             .returning(self.model)
         )
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         obj = res.scalars().one_or_none()
         if not obj:
@@ -53,7 +53,7 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
 
     async def delete(self, **filter_by) -> CursorResult:
         stmt = delete(self.model).filter_by(**filter_by)
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         return res
 
@@ -80,6 +80,6 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
             stmt = stmt.offset(pagination.offset).limit(pagination.limit)
         stmt = stmt.filter_by(**filter_by)
 
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         return self._split_records_and_count(res.all())

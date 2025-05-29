@@ -5,7 +5,7 @@ from gateways.contracts import IMissionsRepo, ITargetsRepo
 from gateways.exceptions import StorageNotFoundError
 from gateways.sqlalchemy.repositories.base import SqlAlchemyRepository
 from dto import PaginationDTO, CreateTargetNoteDTO, CreateMissionDTO
-from gateways.sqlalchemy import session_factory
+from gateways.sqlalchemy import get_session
 
 
 class MissionsRepo(SqlAlchemyRepository[Mission], IMissionsRepo):
@@ -27,7 +27,7 @@ class MissionsRepo(SqlAlchemyRepository[Mission], IMissionsRepo):
             .filter_by(id=mission_id)
             .options(selectinload(self.model.targets))
         )
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         obj = res.scalar_one_or_none()
         if not obj:
@@ -37,7 +37,7 @@ class MissionsRepo(SqlAlchemyRepository[Mission], IMissionsRepo):
     async def insert(self, dto: CreateMissionDTO) -> Mission:
         targets = [Target(**target_dto.model_dump()) for target_dto in dto.targets]
         instance = Mission(**dto.model_dump(exclude={"targets"}), targets=targets)
-        async with session_factory() as session:
+        async with get_session() as session:
             session.add(instance)
             await session.flush()
         return instance
@@ -57,7 +57,7 @@ class TargetsRepo(SqlAlchemyRepository[Target], ITargetsRepo):
 
     async def create_note(self, dto: CreateTargetNoteDTO) -> TargetNote:
         stmt = insert(TargetNote).values(**dto.model_dump())
-        async with session_factory() as session:
+        async with get_session() as session:
             res = await session.execute(stmt)
         return res.scalar_one()
 
