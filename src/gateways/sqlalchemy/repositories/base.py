@@ -75,13 +75,9 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
     async def get_all(
         self, pagination: PaginationDTO | None = None, **filter_by
     ) -> PaginationResT[T]:
-        stmt = select(self.model)
+        stmt = select(self.model, func.count().over())
         if pagination is not None:
-            stmt = (
-                select(self.model, func.count().over())
-                .offset(pagination.offset)
-                .limit(pagination.limit)
-            )
+            stmt = stmt.offset(pagination.offset).limit(pagination.limit)
         stmt = stmt.filter_by(**filter_by)
 
         async with session_factory() as session:

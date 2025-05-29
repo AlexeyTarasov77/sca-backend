@@ -1,5 +1,7 @@
 from collections.abc import Sequence
 import math
+from typing import Annotated
+from fastapi import Path
 from pydantic import BaseModel, Field, computed_field
 
 
@@ -31,11 +33,12 @@ class PaginatedResponse[T: BaseDTO](PaginationDTO):
         cls,
         objects: Sequence[T],
         total_records: int,
-        pagination_dto: PaginationDTO,
+        pagination_dto: PaginationDTO | None = None,
     ):
-        return cls(
-            objects=objects,
-            total_records=total_records,
-            first_page=1,
-            **pagination_dto.model_dump(),
-        )
+        args = {"objects": objects, "total_records": total_records, "first_page": 1}
+        if pagination_dto is not None:
+            args.update(pagination_dto.model_dump())
+        return cls(**args)
+
+
+EntityIDParam = Annotated[int, Path(ge=1)]
