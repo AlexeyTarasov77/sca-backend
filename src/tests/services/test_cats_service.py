@@ -5,7 +5,7 @@ from faker import Faker
 import pytest
 from unittest.mock import Mock, create_autospec
 
-from dto import CreateCatDTO, UpdateCatDTO
+from dto import CreateCatDTO, UpdateCatDTO, PaginationDTO
 from entity import Cat
 from gateways.contracts import ICatsAPIClient, ICatsRepo
 from gateways.exceptions import StorageNotFoundError
@@ -83,14 +83,14 @@ class TestCatsService:
         fake_cat_id = randint(1, 100000)
         res = await cats_service.remove_cat(fake_cat_id)
         assert res is None
-        cats_service._cats_repo.delete.assert_awaited_once_with(fake_cat_id)
+        cats_service._cats_repo.delete_by_id.assert_awaited_once_with(fake_cat_id)
 
     async def test_remove_cat_not_found(self, cats_service: MockedCatsService):
         fake_cat_id = randint(1, 100000)
-        cats_service._cats_repo.delete.side_effect = StorageNotFoundError()
+        cats_service._cats_repo.delete_by_id.side_effect = StorageNotFoundError()
         with pytest.raises(CatNotFoundError):
             await cats_service.remove_cat(fake_cat_id)
-        cats_service._cats_repo.delete.assert_awaited_once_with(fake_cat_id)
+        cats_service._cats_repo.delete_by_id.assert_awaited_once_with(fake_cat_id)
 
     async def test_get_cat_by_id_success(
         self, cats_service: MockedCatsService, fake_cat: Cat
@@ -122,23 +122,18 @@ class TestCatsService:
         res = await cats_service.get_all_cats()
 
         assert res == expected_cats
-        cats_service._cats_repo.get_all.assert_awaited_once_with(
-            limit=None, offset=None
-        )
+        cats_service._cats_repo.get_all.assert_awaited_once_with(None)
 
     async def test_get_all_cats_with_pagination(
         self, cats_service: MockedCatsService, fake_cat: Cat
     ):
         expected_cats = [fake_cat]
-        limit, offset = 10, 5
         cats_service._cats_repo.get_all.return_value = expected_cats
-
-        res = await cats_service.get_all_cats(limit=limit, offset=offset)
+        pagination = PaginationDTO()
+        res = await cats_service.get_all_cats(pagination)
 
         assert res == expected_cats
-        cats_service._cats_repo.get_all.assert_awaited_once_with(
-            limit=limit, offset=offset
-        )
+        cats_service._cats_repo.get_all.assert_awaited_once_with(pagination)
 
     # New tests for update_cat
     async def test_update_cat_success(
