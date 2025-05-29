@@ -11,5 +11,12 @@ docker/up:
 docker/build:
 	docker compose -f docker-compose.dev.yaml up --build
 
+docker/stop:
+	docker compose -f docker-compose.dev.yaml down
+
 docker/run-migrations:
 	docker compose -f docker-compose.dev.yaml exec app alembic upgrade head
+
+docker/test:
+	docker compose -f docker-compose.dev.yaml exec app pytest
+

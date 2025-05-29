@@ -1,6 +1,7 @@
 name: CI
 on:
   push:
+    branches: ["main"]
 
 jobs: 
   quality-check:
@@ -11,16 +12,44 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install deps
         run: pip install poetry && poetry install --no-root 
-
       - name: lint
         run: poetry run ruff check ./src 
       - name: type checking
         run: poetry run pyright ./src
 
+  test:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install deps
+        run: pip install poetry && poetry install --no-root 
+
+      - name: Setup .env
+        run: cp .env.dev .env
+
+      - name: Build and run services
+        run: docker compose -f docker-compose.dev.yaml up -d --build
+
+      - name: Run migrations
+        run: make docker/run-migrations
+
+      - name: Run tests
+        run: make docker/test
+      - name: Tear down
+        run: make docker/stop
