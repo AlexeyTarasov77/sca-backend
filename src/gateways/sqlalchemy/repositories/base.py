@@ -2,7 +2,7 @@ from collections.abc import Mapping, Sequence
 from sqlalchemy import CursorResult, Row, delete, func, insert, select, update
 from dto.base import PaginationDTO, PaginationResT
 from entity.base import EntityBaseModel
-from gateways.sqlalchemy.main import session_factory
+from gateways.sqlalchemy import session_factory
 
 from gateways.exceptions import GatewayError, StorageNotFoundError
 

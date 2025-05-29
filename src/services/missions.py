@@ -41,20 +41,25 @@ class MissionsService(IMissionsService):
         try:
             mission = await self._missions_repo.get_by_id(mission_id)
             if mission.assigned_to_id is not None:
-                raise InvalidOperationError()
+                raise InvalidOperationError(
+                    "Mission can't be removed because it's already assigned"
+                )
         except StorageNotFoundError:
             raise MissionNotFoundError()
         await self._missions_repo.delete_by_id(mission_id)
 
     async def assign_mission_to_cat(self, dto: AssignMissionDTO) -> Mission:
-        # Assign cat only if he is not assigned to any uncompleted mission yet
+        """Assigns a cat to a mission.
+        Cat can only be assigned if mission is not completed yet"""
         try:
             mission = await self._missions_repo.get_by_assigned_id(dto.cat_id)
         except StorageNotFoundError:
             pass
         else:
             if not mission.is_completed:
-                raise InvalidOperationError()
+                raise InvalidOperationError(
+                    "You can't assign cat to that mission because it's already completed"
+                )
         try:
             return await self._missions_repo.update_by_id(
                 dto.mission_id, assigned_to_id=dto.mission_id
@@ -84,6 +89,11 @@ class MissionsService(IMissionsService):
 
     async def add_note_for_target(self, dto: CreateTargetNoteDTO) -> TargetNote:
         try:
-            return await self._targets_repo.create_note(dto)
-        except StorageInvalidRefError:
+            target = await self._targets_repo.get_by_id(dto.target_id)
+        except StorageNotFoundError:
             raise TargetNotFoundError()
+        if target.is_completed:
+            raise InvalidOperationError(
+                "Target notes are 'frozen' because target is already completed"
+            )
+        return await self._targets_repo.create_note(dto)
