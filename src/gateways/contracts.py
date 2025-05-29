@@ -26,3 +26,8 @@ class ICatsRepo(ABC):
 class ICatsAPIClient(ABC):
     @abstractmethod
     async def get_all_breeds(self) -> list[str]: ...
+
+
+class IMissionsRepo(ABC):
+    @abstractmethod
+    async def a(): ...
