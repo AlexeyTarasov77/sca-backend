@@ -27,4 +27,4 @@ class Config(BaseSettings):
 
 load_dotenv()
 
-app_config = Config()
+app_config = Config()  # type: ignore

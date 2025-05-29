@@ -1,10 +1,12 @@
 import asyncio
 from fastapi import FastAPI
 import uvicorn
+from api.v1.router import v1_router
 
 from core.config import app_config
 
 app = FastAPI()
+app.include_router(v1_router)
 
 
 async def main():
