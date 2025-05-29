@@ -5,8 +5,8 @@ from httpx import AsyncClient
 import punq
 
 from gateways.cats_api.client import CatsAPIClient
-from gateways.contracts import ICatsAPIClient, ICatsRepo, IMissionsRepo
-from gateways.sqlalchemy.repositories import CatsRepo, MissionsRepo
+from gateways.contracts import ICatsAPIClient, ICatsRepo, IMissionsRepo, ITargetsRepo
+from gateways.sqlalchemy.repositories import CatsRepo, MissionsRepo, TargetsRepo
 from services.cats import CatsService
 from services.contracts import ICatsService, IMissionsService
 from services.missions import MissionsService
@@ -23,6 +23,7 @@ def init_container() -> punq.Container:
     container.register(ICatsAPIClient, CatsAPIClient, scope=punq.Scope.singleton)
     container.register(ICatsRepo, CatsRepo)
     container.register(IMissionsRepo, MissionsRepo)
+    container.register(ITargetsRepo, TargetsRepo)
     container.register(ICatsService, CatsService, scope=punq.Scope.singleton)
     container.register(IMissionsService, MissionsService, scope=punq.Scope.singleton)
 

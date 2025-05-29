@@ -50,7 +50,7 @@ class MissionsService(IMissionsService):
 
     async def assign_mission_to_cat(self, dto: AssignMissionDTO) -> Mission:
         """Assigns a cat to a mission.
-        Cat can only be assigned if mission is not completed yet"""
+        Cat can only be assigned to one incompleted mission at a time"""
         try:
             mission = await self._missions_repo.get_by_assigned_id(dto.cat_id)
         except StorageNotFoundError:

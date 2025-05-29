@@ -10,7 +10,10 @@ from .base import (
     EntityIDParam as EntityIDParam,
 )
 from .missions import (
+    MissionDTO as MissionDTO,
     CreateMissionDTO as CreateMissionDTO,
     CreateTargetNoteDTO as CreateTargetNoteDTO,
     AssignMissionDTO as AssignMissionDTO,
+    TargetDTO as TargetDTO,
+    TargetNoteDTO as TargetNoteDTO,
 )
