@@ -19,3 +19,7 @@
   ```bash
   make docker/run-migrations
   ```
+
+
+### Postman collection to test endpoints:
+**https://www.postman.com/co3n/my-workspace/request/6zs2358/add-target-note?tab=body**
