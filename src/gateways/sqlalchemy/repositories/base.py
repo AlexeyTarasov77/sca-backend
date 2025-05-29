@@ -1,10 +1,15 @@
 from collections.abc import Mapping, Sequence
 from sqlalchemy import CursorResult, Row, delete, func, insert, select, update
+from sqlalchemy.exc import IntegrityError
 from dto.base import PaginationDTO, PaginationResT
 from entity.base import EntityBaseModel
 from gateways.sqlalchemy import get_session
 
-from gateways.exceptions import GatewayError, StorageNotFoundError
+from gateways.exceptions import (
+    GatewayError,
+    StorageInvalidRefError,
+    StorageNotFoundError,
+)
 
 
 class SqlAlchemyRepository[T: EntityBaseModel]:
@@ -17,14 +22,20 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
         if not values:
             raise GatewayError("No data to insert")
         stmt = insert(self.model).values(**values).returning(self.model)
-        async with get_session() as session:
-            res = await session.execute(stmt)
+        try:
+            async with get_session() as session:
+                res = await session.execute(stmt)
+        except IntegrityError:
+            raise StorageInvalidRefError
         return res.scalars().one()
 
     async def save(self, instance: T):
-        async with get_session() as session:
-            session.add(instance)
-            await session.flush()
+        try:
+            async with get_session() as session:
+                session.add(instance)
+                await session.flush()
+        except IntegrityError:
+            raise StorageInvalidRefError
 
     async def get_one(self, **filter_by) -> T:
         stmt = select(self.model).filter_by(**filter_by).limit(1)
@@ -44,8 +55,11 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
             .values(**data)
             .returning(self.model)
         )
-        async with get_session() as session:
-            res = await session.execute(stmt)
+        try:
+            async with get_session() as session:
+                res = await session.execute(stmt)
+        except IntegrityError:
+            raise StorageInvalidRefError
         obj = res.scalars().one_or_none()
         if not obj:
             raise StorageNotFoundError()
@@ -75,11 +89,17 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
     async def get_all(
         self, pagination: PaginationDTO | None = None, **filter_by
     ) -> PaginationResT[T]:
-        stmt = select(self.model, func.count().over())
+        stmt = select(self.model)
         if pagination is not None:
-            stmt = stmt.offset(pagination.offset).limit(pagination.limit)
+            stmt = (
+                select(self.model, func.count().over())
+                .offset(pagination.offset)
+                .limit(pagination.limit)
+            )
         stmt = stmt.filter_by(**filter_by)
 
         async with get_session() as session:
             res = await session.execute(stmt)
+        if pagination is None:
+            return res.scalars().all(), 0
         return self._split_records_and_count(res.all())

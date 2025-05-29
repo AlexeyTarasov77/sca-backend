@@ -75,7 +75,7 @@ async def get_cat(
         )
 
 
-@router.put(
+@router.patch(
     "/{cat_id}",
     response_model=CatDTO,
     summary="Update cat",

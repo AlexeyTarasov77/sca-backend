@@ -17,6 +17,7 @@ from services.contracts import IMissionsService
 from services.exceptions import (
     CatNotFoundError,
     InvalidOperationError,
+    InvalidTargetsCount,
     MissionNotFoundError,
     TargetNotFoundError,
 )
@@ -42,7 +43,7 @@ class GetMissionResponse(MissionDTO):
     description="Create a new mission with optional cat assignment",
     responses={
         201: {"description": "Mission created successfully"},
-        400: {"description": "Invalid cat ID"},
+        400: {"description": "Invalid cat ID or targets count"},
     },
 )
 async def create_mission(dto: CreateMissionDTO, service: MissionsService) -> MissionDTO:
@@ -53,6 +54,11 @@ async def create_mission(dto: CreateMissionDTO, service: MissionsService) -> Mis
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Cat with ID {dto.assigned_to_id} not found",
+        )
+    except InvalidTargetsCount as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=e.msg,
         )
 
 
@@ -118,7 +124,7 @@ async def delete_mission(mission_id: int, service: MissionsService):
         )
 
 
-@router.post(
+@router.patch(
     "/assign",
     summary="Assign mission to cat",
     description="Assign a mission to a cat if the cat has no active missions",
@@ -149,7 +155,7 @@ async def assign_mission(dto: AssignMissionDTO, service: MissionsService) -> Mis
         )
 
 
-@router.post(
+@router.patch(
     "/targets/{target_id}/complete",
     summary="Complete target",
     description="Mark a target as completed and check if mission is completed",

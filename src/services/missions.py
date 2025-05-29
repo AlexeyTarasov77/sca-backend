@@ -1,6 +1,7 @@
 from dto import CreateMissionDTO, CreateTargetNoteDTO, AssignMissionDTO, PaginationDTO
 from entity import Mission, Target, TargetNote
 from services.exceptions import (
+    InvalidTargetsCount,
     MissionNotFoundError,
     TargetNotFoundError,
     CatNotFoundError,
@@ -12,18 +13,16 @@ from services.contracts import IMissionsService
 
 class MissionsService(IMissionsService):
     async def create_mission(self, dto: CreateMissionDTO) -> Mission:
-        # Validate assigned cat exists if provided
-        if dto.assigned_to_id is not None:
-            try:
-                await self._cats_repo.get_by_id(dto.assigned_to_id)
-            except StorageNotFoundError:
-                raise CatNotFoundError()
-
-        return await self._missions_repo.insert(dto)
+        if len(dto.targets) < 1 or len(dto.targets) > 3:
+            raise InvalidTargetsCount()
+        try:
+            return await self._missions_repo.insert(dto)
+        except StorageInvalidRefError:
+            raise CatNotFoundError()
 
     async def get_mission_by_id(self, mission_id: int) -> Mission:
         try:
-            return await self._missions_repo.get_by_id(mission_id)
+            return await self._missions_repo.get_by_id_with_targets(mission_id)
         except StorageNotFoundError:
             raise MissionNotFoundError()
 
@@ -62,7 +61,7 @@ class MissionsService(IMissionsService):
                 )
         try:
             return await self._missions_repo.update_by_id(
-                dto.mission_id, assigned_to_id=dto.mission_id
+                dto.mission_id, assigned_to_id=dto.cat_id
             )
         except StorageNotFoundError:
             raise MissionNotFoundError()

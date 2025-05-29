@@ -16,7 +16,10 @@ class MissionsRepo(SqlAlchemyRepository[Mission], IMissionsRepo):
         pagination: PaginationDTO | None = None,
         is_completed: bool | None = None,
     ):
-        return await super().get_all(pagination, is_completed=is_completed)
+        filters = {}
+        if is_completed is not None:
+            filters["is_completed"] = is_completed
+        return await super().get_all(pagination, **filters)
 
     async def get_by_id(self, mission_id: int) -> Mission:
         return await super().get_one(id=mission_id)
@@ -56,7 +59,7 @@ class TargetsRepo(SqlAlchemyRepository[Target], ITargetsRepo):
     model = Target
 
     async def create_note(self, dto: CreateTargetNoteDTO) -> TargetNote:
-        stmt = insert(TargetNote).values(**dto.model_dump())
+        stmt = insert(TargetNote).values(**dto.model_dump()).returning(TargetNote)
         async with get_session() as session:
             res = await session.execute(stmt)
         return res.scalar_one()

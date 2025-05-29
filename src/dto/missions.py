@@ -1,3 +1,4 @@
+from datetime import datetime
 from dto.base import BaseDTO
 
 
@@ -12,7 +13,7 @@ class TargetDTO(BaseDTO):
 class TargetNoteDTO(BaseDTO):
     id: int
     text: str
-    created_at: str
+    created_at: datetime
     target_id: int
 
 
