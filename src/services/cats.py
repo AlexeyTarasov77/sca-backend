@@ -1,7 +1,8 @@
 from dto import CreateCatDTO
 from entity import Cat
+from gateways.exceptions import StorageNotFoundError
 from services.contracts import ICatsService
-from services.exceptions import InvalidCatBreedError
+from services.exceptions import CatNotFoundError, InvalidCatBreedError
 
 
 class CatsService(ICatsService):
@@ -11,4 +12,8 @@ class CatsService(ICatsService):
             raise InvalidCatBreedError()
         return await self._cats_repo.insert(dto)
 
-    async def remove_cat(self, cat_id: int) -> None: ...
+    async def remove_cat(self, cat_id: int) -> None:
+        try:
+            await self._cats_repo.delete(cat_id)
+        except StorageNotFoundError:
+            raise CatNotFoundError()

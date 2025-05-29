@@ -8,8 +8,9 @@ from unittest.mock import Mock, create_autospec
 from dto import CreateCatDTO
 from entity import Cat
 from gateways.contracts import ICatsAPIClient, ICatsRepo
+from gateways.exceptions import StorageNotFoundError
 from services.cats import CatsService
-from services.exceptions import InvalidCatBreedError
+from services.exceptions import CatNotFoundError, InvalidCatBreedError
 
 
 class MockedCatsService(CatsService):
@@ -59,3 +60,16 @@ class TestCatsService:
             await cats_service.create_cat(fake_create_cat_dto)
         cats_service._cats_repo.insert.assert_not_awaited()
         cats_service._cats_api.get_all_breeds.assert_awaited_once()
+
+    async def test_remove_cat_sucsess(self, cats_service: MockedCatsService):
+        fake_cat_id = randint(1, 100000)
+        res = await cats_service.remove_cat(fake_cat_id)
+        assert res is None
+        cats_service._cats_repo.delete.assert_awaited_once_with(fake_cat_id)
+
+    async def test_remove_cat_not_found(self, cats_service: MockedCatsService):
+        fake_cat_id = randint(1, 100000)
+        cats_service._cats_repo.delete.side_effect = StorageNotFoundError()
+        with pytest.raises(CatNotFoundError):
+            await cats_service.remove_cat(fake_cat_id)
+        cats_service._cats_repo.delete.assert_awaited_once_with(fake_cat_id)

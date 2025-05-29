@@ -1,9 +1,13 @@
-class ServiceError(Exception):
-    msg: str = "server error"
+from core.exceptions import BaseError
 
-    def __init__(self):
-        return super().__init__(self.msg)
+
+class ServiceError(BaseError):
+    msg: str = "server error"
 
 
 class InvalidCatBreedError(ServiceError):
     msg = "Invalid breed name"
+
+
+class CatNotFoundError(ServiceError):
+    msg = "Cat not found"

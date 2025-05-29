@@ -8,6 +8,9 @@ class ICatsRepo(ABC):
     @abstractmethod
     async def insert(self, dto: CreateCatDTO) -> Cat: ...
 
+    @abstractmethod
+    async def delete(self, cat_id: int) -> None: ...
+
 
 class ICatsAPIClient(ABC):
     @abstractmethod
