@@ -4,5 +4,5 @@ class BaseError(Exception):
 
     msg: str = "base error"
 
-    def __init__(self):
-        return super().__init__(self.msg)
+    def __init__(self, custom_msg: str | None = None):
+        return super().__init__(custom_msg or self.msg)
