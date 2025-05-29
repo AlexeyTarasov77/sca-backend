@@ -1,6 +1,7 @@
 from entity.mission import Mission
 from gateways.contracts import IMissionsRepo
 from gateways.sqlalchemy.repositories.base import SqlAlchemyRepository
+from dto import PaginationDTO
 
 
 class MissionsRepo(SqlAlchemyRepository, IMissionsRepo):
@@ -8,8 +9,7 @@ class MissionsRepo(SqlAlchemyRepository, IMissionsRepo):
 
     async def get_all_and_filter(
         self,
-        limit: int | None = None,
-        offset: int | None = None,
+        pagination: PaginationDTO | None = None,
         is_completed: bool | None = None,
     ):
-        return await super().get_all(limit, offset, is_completed=is_completed)
+        return await super().get_all(pagination, is_completed=is_completed)

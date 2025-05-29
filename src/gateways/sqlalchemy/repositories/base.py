@@ -1,5 +1,6 @@
 from collections.abc import Mapping, Sequence
-from sqlalchemy import CursorResult, delete, insert, select, update
+from sqlalchemy import CursorResult, Row, delete, func, insert, select, update
+from dto.base import PaginationDTO, PaginationResT
 from entity.base import EntityBaseModel
 from gateways.sqlalchemy.main import session_factory
 
@@ -24,18 +25,6 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
         async with session_factory() as session:
             session.add(instance)
             await session.flush()
-
-    async def get_all(
-        self, limit: int | None = None, offset: int | None = None, **filter_by
-    ) -> Sequence[T]:
-        stmt = select(self.model).filter_by(**filter_by)
-        if limit is not None:
-            stmt = stmt.limit(limit)
-        if offset is not None:
-            stmt = stmt.offset(offset)
-        async with session_factory() as session:
-            res = await session.execute(stmt)
-        return res.scalars().all()
 
     async def get_one(self, **filter_by) -> T:
         stmt = select(self.model).filter_by(**filter_by).limit(1)
@@ -72,3 +61,29 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
         res = await self.delete(**filter_by)
         if res.rowcount < 1:
             raise StorageNotFoundError()
+
+    def _split_records_and_count(
+        self, res: Sequence[Row[tuple[T, int]]]
+    ) -> PaginationResT[T]:
+        try:
+            count = res[0][1]
+            records = [row[0] for row in res]
+            return records, count
+        except IndexError:
+            return [], 0
+
+    async def get_all(
+        self, pagination: PaginationDTO | None = None, **filter_by
+    ) -> PaginationResT[T]:
+        stmt = select(self.model)
+        if pagination is not None:
+            stmt = (
+                select(self.model, func.count().over())
+                .offset(pagination.offset)
+                .limit(pagination.limit)
+            )
+        stmt = stmt.filter_by(**filter_by)
+
+        async with session_factory() as session:
+            res = await session.execute(stmt)
+        return self._split_records_and_count(res.all())

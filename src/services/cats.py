@@ -1,4 +1,4 @@
-from dto import CreateCatDTO, UpdateCatDTO
+from dto import CreateCatDTO, UpdateCatDTO, PaginationDTO
 from entity import Cat
 from gateways.exceptions import StorageNotFoundError
 from services.contracts import ICatsService
@@ -26,15 +26,9 @@ class CatsService(ICatsService):
 
     async def get_all_cats(
         self,
-        limit: int | None = None,
-        offset: int | None = None,
-    ) -> list[Cat]:
-        return list(
-            await self._cats_repo.get_all(
-                limit=limit,
-                offset=offset,
-            )
-        )
+        pagination: PaginationDTO | None = None,
+    ):
+        return await self._cats_repo.get_all(pagination)
 
     async def update_cat(self, cat_id: int, dto: UpdateCatDTO) -> Cat:
         try:

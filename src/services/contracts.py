@@ -7,6 +7,7 @@ from dto import (
     AssignMissionDTO,
     UpdateCatDTO,
 )
+from dto.base import PaginationDTO, PaginationResT
 from entity import Cat, Mission, TargetNote, Target
 from gateways.contracts import ICatsAPIClient, ICatsRepo, IMissionsRepo, ITargetsRepo
 
@@ -27,10 +28,8 @@ class ICatsService(ABC):
 
     @abstractmethod
     async def get_all_cats(
-        self,
-        limit: int | None = None,
-        offset: int | None = None,
-    ) -> list[Cat]: ...
+        self, pagination: PaginationDTO | None = None
+    ) -> PaginationResT[Cat]: ...
 
     @abstractmethod
     async def update_cat(self, cat_id: int, dto: UpdateCatDTO) -> Cat: ...
@@ -68,7 +67,6 @@ class IMissionsService(ABC):
     @abstractmethod
     async def get_all_missions(
         self,
-        limit: int | None = None,
-        offset: int | None = None,
+        pagination: PaginationDTO | None = None,
         is_completed: bool | None = None,
-    ) -> list[Mission]: ...
+    ) -> PaginationResT[Mission]: ...

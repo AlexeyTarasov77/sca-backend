@@ -1,4 +1,4 @@
-from dto import CreateMissionDTO, CreateTargetNoteDTO, AssignMissionDTO
+from dto import CreateMissionDTO, CreateTargetNoteDTO, AssignMissionDTO, PaginationDTO
 from entity import Mission, Target, TargetNote
 from services.exceptions import (
     MissionNotFoundError,
@@ -29,16 +29,12 @@ class MissionsService(IMissionsService):
 
     async def get_all_missions(
         self,
-        limit: int | None = None,
-        offset: int | None = None,
+        pagination: PaginationDTO | None = None,
         is_completed: bool | None = None,
-    ) -> list[Mission]:
-        return list(
-            await self._missions_repo.get_all_and_filter(
-                limit=limit,
-                offset=offset,
-                is_completed=is_completed,
-            )
+    ):
+        return await self._missions_repo.get_all_and_filter(
+            pagination,
+            is_completed=is_completed,
         )
 
     async def remove_mission(self, mission_id: int) -> None:

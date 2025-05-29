@@ -1,7 +1,13 @@
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 
-from dto import CreateCatDTO, UpdateCatDTO, CreateMissionDTO, CreateTargetNoteDTO
+from dto import (
+    CreateCatDTO,
+    UpdateCatDTO,
+    CreateMissionDTO,
+    CreateTargetNoteDTO,
+    PaginationResT,
+    PaginationDTO,
+)
 from entity import Cat, Mission, TargetNote, Target
 
 
@@ -20,8 +26,8 @@ class ICatsRepo(ABC):
 
     @abstractmethod
     async def get_all(
-        self, limit: int | None = None, offset: int | None = None
-    ) -> Sequence[Cat]: ...
+        self, pagination: PaginationDTO | None = None
+    ) -> PaginationResT[Cat]: ...
 
 
 class ICatsAPIClient(ABC):
@@ -48,10 +54,9 @@ class IMissionsRepo(ABC):
     @abstractmethod
     async def get_all_and_filter(
         self,
-        limit: int | None = None,
-        offset: int | None = None,
+        pagination: PaginationDTO | None = None,
         is_completed: bool | None = None,
-    ) -> Sequence[Mission]: ...
+    ) -> PaginationResT[Mission]: ...
 
 
 class ITargetsRepo(ABC):
