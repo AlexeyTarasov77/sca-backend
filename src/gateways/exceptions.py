@@ -7,3 +7,9 @@ class GatewayError(BaseError):
 
 class StorageNotFoundError(GatewayError):
     msg = "record not found in storage"
+
+
+class StorageInvalidRefError(GatewayError):
+    """Raised in case of fk violation"""
+
+    msg = "Invalid reference"

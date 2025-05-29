@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from dto import CreateCatDTO, UpdateCatDTO
-from entity import Cat
+from dto import CreateCatDTO, UpdateCatDTO, CreateMissionDTO, CreateTargetNoteDTO
+from entity import Cat, Mission, TargetNote, Target
 
 
 class ICatsRepo(ABC):
@@ -30,4 +30,35 @@ class ICatsAPIClient(ABC):
 
 class IMissionsRepo(ABC):
     @abstractmethod
-    async def a(): ...
+    async def insert(self, dto: CreateMissionDTO) -> Mission: ...
+
+    @abstractmethod
+    async def get_by_id(self, mission_id: int) -> Mission: ...
+
+    @abstractmethod
+    async def get_by_assigned_id(self, assigned_to_id: int) -> Mission: ...
+
+    @abstractmethod
+    async def delete_by_id(self, mission_id: int) -> None: ...
+
+    @abstractmethod
+    async def update_by_id(self, mission_id: int, **data) -> Mission: ...
+
+    @abstractmethod
+    async def get_all(
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        is_completed: bool | None = None,
+    ) -> list[Mission]: ...
+
+
+class ITargetsRepo(ABC):
+    @abstractmethod
+    async def create_note(self, dto: CreateTargetNoteDTO) -> TargetNote: ...
+
+    @abstractmethod
+    async def update_by_id(self, target_id: int, **data) -> Target: ...
+
+    @abstractmethod
+    async def get_by_mission_id(self, mission_id: int) -> list[Target]: ...

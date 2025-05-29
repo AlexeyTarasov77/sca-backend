@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
 from dto import CreateCatDTO, CreateMissionDTO, CreateTargetNoteDTO, AssignMissionDTO
-from entity import Cat, Mission, TargetNote
-from gateways.contracts import ICatsAPIClient, ICatsRepo, IMissionsRepo
+from entity import Cat, Mission, TargetNote, Target
+from gateways.contracts import ICatsAPIClient, ICatsRepo, IMissionsRepo, ITargetsRepo
 
 
 class ICatsService(ABC):
@@ -15,9 +15,15 @@ class ICatsService(ABC):
 
 
 class IMissionsService(ABC):
-    def __init__(self, missions_repo: IMissionsRepo, cats_repo: ICatsRepo):
+    def __init__(
+        self,
+        missions_repo: IMissionsRepo,
+        cats_repo: ICatsRepo,
+        targets_repo: ITargetsRepo,
+    ):
         self._missions_repo = missions_repo
         self._cats_repo = cats_repo
+        self._targets_repo = targets_repo
 
     @abstractmethod
     async def create_mission(self, dto: CreateMissionDTO) -> Mission: ...
@@ -26,7 +32,7 @@ class IMissionsService(ABC):
     async def remove_mission(self, mission_id: int) -> None: ...
 
     @abstractmethod
-    async def complete_target(self, target_id: int) -> Mission: ...
+    async def complete_target(self, target_id: int) -> tuple[Target, bool]: ...
 
     @abstractmethod
     async def add_note_for_target(self, dto: CreateTargetNoteDTO) -> TargetNote: ...
