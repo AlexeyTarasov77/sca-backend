@@ -1,8 +1,11 @@
 from functools import lru_cache
 import typing as t
 from fastapi import Depends
+from httpx import AsyncClient
 import punq
 
+from gateways.cats_api.client import CatsAPIClient
+from gateways.contracts import ICatsAPIClient
 from services.cats import CatsService
 from services.contracts import ICatsService, IMissionsService
 from services.missions import MissionsService
@@ -15,7 +18,8 @@ def get_container() -> punq.Container:
 
 def init_container() -> punq.Container:
     container = punq.Container()
-
+    container.register(AsyncClient, instance=AsyncClient())
+    container.register(ICatsAPIClient, CatsAPIClient)
     container.register(ICatsService, CatsService)
     container.register(IMissionsService, MissionsService)
 
