@@ -1,5 +1,6 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, relationship
 from entity.base import EntityBaseModel, int_pk_type
 from decimal import Decimal
 
@@ -13,4 +14,4 @@ class Cat(EntityBaseModel):
     experience_years: Mapped[int]
     breed_name: Mapped[str]
     salary: Mapped[Decimal]
-    missions: Mapped[list[Mission]]
+    missions: Mapped[list["Mission"]] = relationship(back_populates="assigned_to")
